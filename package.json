@@ -1,0 +1,12 @@
+{
+  "name": "castrol-promo-tracker",
+  "version": "1.0.0",
+  "description": "Castrol Promotion and Gift Tracking System for DSR and Retailers",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server -p 8080"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

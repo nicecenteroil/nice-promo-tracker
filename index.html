@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castrol Promo Tracker - ระบบจัดการของแถมสำหรับร้านค้า</title>
+  <!-- Google Fonts: Inter & Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Core stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Layout Wrapper -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <span class="logo-text-red">Castrol</span>
+          <span class="logo-text-green">Promo</span>
+        </div>
+        <span class="brand-sub">Nice Center Oil</span>
+      </div>
+
+      <!-- Role Switcher -->
+      <div class="role-switcher-card">
+        <label for="role-select"><i data-lucide="shield"></i> สิทธิ์ผู้ใช้งาน:</label>
+        <select id="role-select" class="role-select-dropdown">
+          <option value="admin">ผู้ดูแลระบบ (Admin)</option>
+          <option value="DSR-KAN">DSR กร (อุทัยธานี-ชัยนาท)</option>
+          <option value="DSR-ANN">DSR แอน (นครสวรรค์ 2)</option>
+          <option value="DSR-NA">DSR นา (สุพรรณบุรี 1)</option>
+          <option value="DSR-MUD">DSR มัดหมี่ (นครสวรรค์ 1)</option>
+          <option value="DSR-NUCH">DSR นุช (สุพรรณบุรี 2)</option>
+        </select>
+      </div>
+      
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>แผงควบคุม (Dashboard)</span>
+        </button>
+        <button class="nav-item" data-tab="customers" id="nav-customers">
+          <i data-lucide="users"></i>
+          <span>ลูกค้า & สมุดบัญชี</span>
+        </button>
+        <button class="nav-item" data-tab="dsrs" id="nav-dsrs">
+          <i data-lucide="contact-2"></i>
+          <span>ยอดตามราย DSR</span>
+        </button>
+        <!-- Removed separate Earn/Claim sidebar tabs as they are now row action modals -->
+        <button class="nav-item" data-tab="approval" id="nav-approval">
+          <i data-lucide="check-square"></i>
+          <span>ตรวจสอบบิล & อนุมัติ</span>
+          <span class="badge" id="approval-badge" style="display:none;">0</span>
+        </button>
+        <button class="nav-item" data-tab="settings" id="nav-settings">
+          <i data-lucide="settings"></i>
+          <span>ตั้งค่าระบบ (Backup)</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="เปลี่ยนธีม สีสว่าง/สีมืด">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+          <span>โหมดสีมืด / สว่าง</span>
+        </button>
+        <div class="user-profile">
+          <div class="avatar" id="user-avatar-char">ภ</div>
+          <div class="user-info">
+            <span class="user-name" id="user-display-name">คุณภูมิ</span>
+            <span class="user-role" id="user-display-role">ผู้ดูแลระบบ / แอดมิน</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1 id="page-title">แผงควบคุม (Dashboard)</h1>
+          <p id="page-subtitle" class="text-muted">ภาพรวมงบสะสมและการแลกเปลี่ยนของแถมคาสตรอล</p>
+        </div>
+        <div class="quick-status">
+          <span class="status-indicator online"></span>
+          <span>ระบบออนไลน์ (Local Storage)</span>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="content-body">
+        
+        <!-- DASHBOARD TAB -->
+        <section id="dashboard-tab" class="tab-content active">
+          <!-- Stat Cards -->
+          <div class="stat-grid">
+            <div class="stat-card earn">
+              <div class="stat-icon">
+                <i data-lucide="trending-up"></i>
+              </div>
+              <div class="stat-info">
+                <h3>งบโปรโมชั่นสะสมรวม</h3>
+                <div class="stat-value" id="stat-total-accumulated">0.00 <span class="currency">฿</span></div>
+                <p class="stat-desc">จากยอดสั่งซื้อน้ำมันเครื่องทั้งหมด</p>
+              </div>
+            </div>
+            
+            <div class="stat-card claim">
+              <div class="stat-icon">
+                <i data-lucide="gift"></i>
+              </div>
+              <div class="stat-info">
+                <h3>ใช้แปลงของแถมแล้ว</h3>
+                <div class="stat-value" id="stat-total-claimed">0.00 <span class="currency">฿</span></div>
+                <p class="stat-desc">อนุมัติและหักบัญชีโปรโมชั่นแล้ว</p>
+              </div>
+            </div>
+
+            <div class="stat-card pending">
+              <div class="stat-icon">
+                <i data-lucide="clock"></i>
+              </div>
+              <div class="stat-info">
+                <h3>รอตรวจสอบ / รออนุมัติ</h3>
+                <div class="stat-value" id="stat-total-pending">0.00 <span class="currency">฿</span></div>
+                <p class="stat-desc">DSR ยื่นคำขอพร้อมอัปโหลดบิลเข้ามา</p>
+              </div>
+            </div>
+
+            <div class="stat-card remaining">
+              <div class="stat-icon">
+                <i data-lucide="wallet"></i>
+              </div>
+              <div class="stat-info">
+                <h3>งบสะสมคงเหลือรวม</h3>
+                <div class="stat-value" id="stat-total-remaining">0.00 <span class="currency">฿</span></div>
+                <p class="stat-desc">งบว่างที่ยังไม่ได้นำไปแลกของแถม</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mid Section: Province analysis & Quick list -->
+          <div class="dashboard-grid">
+            <!-- Province breakdown -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2><i data-lucide="map-pin"></i> ยอดสะสมแยกตามจังหวัด (6 จังหวัดดูแล)</h2>
+              </div>
+              <div class="panel-body">
+                <div class="province-list-container" id="province-list">
+                  <!-- Generated dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent pending approvals -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2><i data-lucide="shield-alert"></i> รายการคำขอรอตรวจสอบด่วน (Admin Only)</h2>
+                <button class="btn btn-sm btn-text" id="dashboard-to-approval-btn">ดูทั้งหมด</button>
+              </div>
+              <div class="panel-body">
+                <div class="recent-claims-list" id="recent-pending-claims">
+                  <!-- Generated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CUSTOMERS TAB -->
+        <section id="customers-tab" class="tab-content">
+          <div class="actions-bar filter-bar-custom">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="customer-search-input" placeholder="ค้นหาชื่อร้านค้า หรือ จังหวัด...">
+            </div>
+            
+            <div class="filter-group">
+              <label for="filter-province">จังหวัด:</label>
+              <select id="filter-province">
+                <option value="">ทั้งหมด</option>
+                <option value="สุพรรณบุรี">สุพรรณบุรี</option>
+                <option value="สิงห์บุรี">สิงห์บุรี</option>
+                <option value="อ่างทอง">อ่างทอง</option>
+                <option value="อุทัยธานี">อุทัยธานี</option>
+                <option value="ชัยนาท">ชัยนาท</option>
+                <option value="นครสวรรค์">นครสวรรค์</option>
+              </select>
+            </div>
+
+            <!-- New Segment Filter -->
+            <div class="filter-group">
+              <label for="filter-segment">กลุ่มสินค้า:</label>
+              <select id="filter-segment">
+                <option value="">ทั้งหมด</option>
+                <option value="PCO">รถยนต์ (PCO)</option>
+                <option value="MCO">มอเตอร์ไซค์ (MCO)</option>
+                <option value="both">ทั้งคู่</option>
+              </select>
+            </div>
+
+            <!-- New Hide Zero-Budget Checkbox -->
+            <div class="checkbox-filter-group">
+              <input type="checkbox" id="hide-zero-budget-checkbox" class="custom-checkbox-input">
+              <label for="hide-zero-budget-checkbox" class="custom-checkbox-label">
+                <span class="custom-checkbox-box"></span>
+                ซ่อนร้านค้าที่ไม่มีงบสะสม
+              </label>
+            </div>
+
+            <button class="btn btn-primary" id="open-add-customer-modal-btn">
+              <i data-lucide="plus"></i> เพิ่มร้านค้าใหม่
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table" id="customers-table">
+              <thead>
+                <tr>
+                  <th>รหัสร้านค้า</th>
+                  <th>ชื่อร้านค้า</th>
+                  <th>จังหวัด / กลุ่มสินค้า</th>
+                  <th>ผู้ดูแล (DSR)</th>
+                  <th>งบสะสมทั้งหมด</th>
+                  <th>ใช้ไปแล้ว</th>
+                  <th>งบคงเหลือ</th>
+                  <th style="width: 290px;">การจัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="customers-list-tbody">
+                <!-- Loaded dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Delivery Flow Tracking for Active DSR -->
+          <div class="panel mt-4" id="customers-delivery-tracking-panel" style="display:none;">
+            <div class="panel-header">
+              <h2><i data-lucide="truck"></i> งานส่งมอบที่ค้าง (ของ DSR นี้)</h2>
+            </div>
+            <div class="panel-body">
+              <div class="table-container">
+                <table class="data-table small">
+                  <thead>
+                    <tr>
+                      <th>ร้านค้า</th>
+                      <th>รายละเอียดของแถม</th>
+                      <th>มูลค่า</th>
+                      <th style="width: 150px; text-align: center;">สถานะนำส่ง</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customers-delivery-pending-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DSR OVERVIEW TAB -->
+        <section id="dsrs-tab" class="tab-content">
+          <!-- DSR Summary Cards -->
+          <div class="stat-grid" id="dsr-cards-container">
+            <!-- Loaded dynamically in app.js -->
+          </div>
+
+          <!-- DSR Details Panel split -->
+          <div class="dashboard-grid">
+            <!-- Left: Customers for Selected DSR -->
+            <div class="panel">
+              <div class="panel-header flex-between">
+                <h2 id="dsr-selected-title"><i data-lucide="users"></i> ร้านค้าในเขตการดูแลของ DSR</h2>
+                <div class="search-box small" style="max-width: 250px;">
+                  <i data-lucide="search"></i>
+                  <input type="text" id="dsr-customer-search-input" placeholder="ค้นหาชื่อร้านค้าในเขตนี้...">
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="table-container">
+                  <table class="data-table" id="dsr-customers-table">
+                    <thead>
+                      <tr>
+                        <th>รหัส</th>
+                        <th>ชื่อร้านค้า</th>
+                        <th>จังหวัด / กลุ่ม</th>
+                        <th>งบสะสมรวม</th>
+                        <th>ใช้ไปแล้ว</th>
+                        <th>งบคงเหลือ</th>
+                        <th style="width: 290px;">การจัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dsr-customers-tbody">
+                      <!-- Loaded dynamically in app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Pending Deliveries for Selected DSR -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 id="dsr-delivery-title"><i data-lucide="truck"></i> งานส่งมอบที่ค้าง (ของ DSR นี้)</h2>
+              </div>
+              <div class="panel-body">
+                <div class="recent-claims-list" id="dsr-pending-deliveries-list">
+                  <!-- Loaded dynamically in app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EARN BUDGET TAB -->
+        <section id="earn-tab" class="tab-content">
+          <div class="card-form-container">
+            <div class="form-card">
+              <div class="form-header">
+                <i data-lucide="plus-circle"></i>
+                <div>
+                  <h2>สะสมงบจากยอดสั่งซื้อน้ำมันเครื่อง</h2>
+                  <p>บันทึกยอดขาย Castrol เพื่อแปลงเป็นงบโปรโมชั่นสะสมของร้านค้านั้นๆ</p>
+                </div>
+              </div>
+              
+              <form id="earn-form" class="responsive-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="earn-dsr-select">ผู้ดูแล (DSR) <span class="required">*</span></label>
+                    <select id="earn-dsr-select" required>
+                      <option value="">-- เลือก DSR --</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="earn-customer-select">เลือกร้านค้าที่สั่งซื้อ <span class="required">*</span></label>
+                    <input type="text" id="earn-customer-search" placeholder="🔍 ค้นหาร้าน (พิมพ์รหัส, ชื่อร้าน หรือ DSR)" class="search-input-form">
+                    <select id="earn-customer-select" required>
+                      <option value="">-- เลือกร้านค้า --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="earn-date">วันที่สั่งซื้อ / บันทึก <span class="required">*</span></label>
+                    <input type="date" id="earn-date" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="earn-amount">ยอดซื้อน้ำมันเครื่องสุทธิ (บาท) <span class="required">*</span></label>
+                    <div class="input-with-symbol">
+                      <input type="number" min="0" step="0.01" id="earn-amount" placeholder="เช่น 100000" required>
+                      <span class="symbol">฿</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>สัดส่วนโปรโมชั่น (Promotion Rate) <span class="required">*</span></label>
+                    <div class="rate-selector-group">
+                      <button type="button" class="btn-rate active" data-rate="3" data-segment="PCO">3% (PCO รถยนต์)</button>
+                      <button type="button" class="btn-rate" data-rate="1.5" data-segment="MCO">1.5% (MCO มอเตอร์ไซค์)</button>
+                      <button type="button" class="btn-rate" data-rate="4" data-segment="PCO">4% (PCO + เงินสด 1%)</button>
+                      <button type="button" class="btn-rate" data-rate="2.5" data-segment="MCO">2.5% (MCO + เงินสด 1%)</button>
+                      <div class="custom-rate-input">
+                        <input type="number" min="0" max="100" step="0.1" id="earn-custom-rate" placeholder="ระบุเอง">
+                        <span class="percent-label">%</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>คำนวณงบโปรโมชั่นสะสมที่จะได้รับ</label>
+                    <div class="calculated-value" id="earn-calculated-val">0.00 บาท</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="earn-desc">รายละเอียดสั่งซื้อ / หมายเหตุเพิ่มเติม</label>
+                  <textarea id="earn-desc" rows="3" placeholder="ระบุประเภทน้ำมันเครื่อง เช่น Castrol Edge 5W-30 หรือ รายละเอียดของแถมเป้าหมาย..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="reset" class="btn btn-secondary">ล้างข้อมูล</button>
+                  <button type="submit" class="btn btn-primary btn-icon-label">
+                    <i data-lucide="check-circle-2"></i> บันทึกสะสมงบสำเร็จ
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- CLAIM GIFT TAB -->
+        <section id="claim-tab" class="tab-content">
+          <div class="card-form-container">
+            <!-- Form Card: Request Claim -->
+            <div class="form-card">
+              <div class="form-header">
+                <i data-lucide="gift"></i>
+                <div>
+                  <h2>แปลงงบประมาณเป็นของแถม (Claim Gift Request)</h2>
+                  <p>บันทึกการขอเบิกของแถมสำหรับร้านค้าตามงบประมาณ (เบิกเกินได้ชั่วคราว - ขึ้นแจ้งเตือนติดลบ)</p>
+                </div>
+              </div>
+
+              <div class="alert-info-box" id="claim-budget-info" style="display: none;">
+                <div class="info-metric-container">
+                  <div class="info-metric">
+                    <span class="label">งบสะสมรวม:</span>
+                    <span class="val text-primary" id="claim-info-accumulated">0.00 ฿</span>
+                  </div>
+                  <div class="info-metric">
+                    <span class="label">แปลงของแถมแล้ว:</span>
+                    <span class="val text-success" id="claim-info-claimed">0.00 ฿</span>
+                  </div>
+                  <div class="info-metric">
+                    <span class="label">งบรออนุมัติอยู่:</span>
+                    <span class="val text-warning" id="claim-info-pending">0.00 ฿</span>
+                  </div>
+                  <div class="info-metric highlight">
+                    <span class="label">งบคงเหลือเคลมได้จริง:</span>
+                    <span class="val text-info" id="claim-info-available">0.00 ฿</span>
+                  </div>
+                </div>
+              </div>
+              
+              <form id="claim-form" class="responsive-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="claim-dsr-select">ผู้ดำเนินการซื้อของแถม (DSR) <span class="required">*</span></label>
+                    <select id="claim-dsr-select" required>
+                      <option value="">-- เลือก DSR --</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="claim-customer-select">เลือกร้านค้าที่จะแจกของแถม <span class="required">*</span></label>
+                    <input type="text" id="claim-customer-search" placeholder="🔍 ค้นหาร้าน (พิมพ์รหัส, ชื่อร้าน หรือ DSR)" class="search-input-form">
+                    <select id="claim-customer-select" required>
+                      <option value="">-- เลือกร้านค้า --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="claim-date">วันที่แลกของแถม / ซื้อของ <span class="required">*</span></label>
+                    <input type="date" id="claim-date" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="claim-amount">มูลค่าของแถม (บาท) <span class="required">*</span></label>
+                    <div class="input-with-symbol">
+                      <input type="number" min="0.01" step="0.01" id="claim-amount" placeholder="เช่น 2500" required>
+                      <span class="symbol">฿</span>
+                    </div>
+                    <span class="input-hint text-warning" id="claim-amount-warning" style="display:none;">
+                      ⚠️ ยอดเบิกเกินงบคงเหลือที่มี! ยอดของร้านนี้จะติดลบ และจะหักล้างในบิลขายรอบถัดไป
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="claim-desc">รายละเอียดสิ่งของที่แลก/นำมาแจก <span class="required">*</span></label>
+                  <input type="text" id="claim-desc" placeholder="เช่น พัดลมไอเย็น Hatari 16 นิ้ว หรือ ทองคำหนัก 1 สลึง" required>
+                </div>
+
+                <div class="form-group">
+                  <label>แนบหลักฐานบิล/ใบเสร็จรับเงินจาก DSR <span class="required">*</span></label>
+                  <div class="upload-zone" id="receipt-drop-zone">
+                    <input type="file" id="claim-receipt-input" accept="image/*" style="display:none;" required>
+                    <div class="upload-inner" id="upload-prompt">
+                      <i data-lucide="cloud-upload" class="upload-icon"></i>
+                      <p class="upload-main">ลากไฟล์รูปภาพบิลมาวางที่นี่ หรือ <span>คลิกเลือกไฟล์</span></p>
+                      <p class="upload-sub">ย่อขนาดภาพอัตโนมัติไม่เกิน 80KB ช่วยป้องกันระบบช้า</p>
+                    </div>
+                    <div class="upload-preview" id="receipt-preview-container" style="display:none;">
+                      <img id="receipt-preview-img" src="" alt="Receipt Preview">
+                      <button type="button" class="btn-remove-image" id="btn-remove-receipt">
+                        <i data-lucide="x"></i> ลบรูป
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="reset" class="btn btn-secondary">ล้างข้อมูล</button>
+                  <button type="submit" class="btn btn-success btn-icon-label" id="claim-submit-btn">
+                    <i data-lucide="send"></i> ส่งคำขอเบิกเพื่อรออนุมัติบิล
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Delivery Flow Tracking Card (DSR Actionable List) -->
+            <div class="panel mt-4" id="delivery-tracking-panel">
+              <div class="panel-header">
+                <h2><i data-lucide="truck"></i> ของแถมอนุมัติแล้ว รอนำส่งมอบให้ลูกค้า (DSR Delivery Flow)</h2>
+              </div>
+              <div class="panel-body">
+                <div class="table-container">
+                  <table class="data-table small">
+                    <thead>
+                      <tr>
+                        <th>ร้านค้า</th>
+                        <th>รายละเอียดของแถม</th>
+                        <th>มูลค่า</th>
+                        <th>DSR ผู้รับผิดชอบ</th>
+                        <th style="width: 150px; text-align: center;">สถานะนำส่ง</th>
+                      </tr>
+                    </thead>
+                    <tbody id="delivery-pending-tbody">
+                      <!-- Populated dynamically with 'approved_delivery' claims -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- APPROVAL & AUDIT TAB -->
+        <section id="approval-tab" class="tab-content">
+          <div class="panel">
+            <div class="panel-header flex-between">
+              <h2><i data-lucide="check-square"></i> ตรวจสอบคำขอเบิกของแถมและบิลใบเสร็จ (Admin Only)</h2>
+              <div class="badge badge-lg" id="approval-count-badge">0 รายการรอดำเนินการ</div>
+            </div>
+            <div class="panel-body">
+              <div class="audit-list" id="audit-claims-list">
+                <!-- Generated dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS TAB -->
+        <section id="settings-tab" class="tab-content">
+          <div class="settings-grid">
+            
+            <div class="panel">
+              <div class="panel-header">
+                <h2><i data-lucide="database"></i> จัดการฐานข้อมูลและแบ็กอัป (Local Database)</h2>
+              </div>
+              <div class="panel-body block-flow">
+                <p class="text-muted">ข้อมูลถูกดึงมาจากไฟล์บัญชีจริงเดือนพฤษภาคม 2569 ครอบคลุม 5 DSR และร้านค้า 213 แห่งเรียบร้อยแล้ว</p>
+                
+                <div class="database-actions">
+                  <div class="db-action-item">
+                    <h4>สำรองข้อมูล (Export JSON)</h4>
+                    <p class="text-muted text-sm">ดาวน์โหลดข้อมูลร้านค้า ประวัติงบ และการเคลมทั้งหมดเก็บไว้ในคอมพิวเตอร์</p>
+                    <button class="btn btn-secondary btn-icon-label" id="btn-export-db">
+                      <i data-lucide="download"></i> ส่งออกข้อมูลทั้งหมด (.json)
+                    </button>
+                  </div>
+
+                  <div class="db-action-item">
+                    <h4>นำเข้าข้อมูลที่สำรองไว้ (Import JSON)</h4>
+                    <p class="text-muted text-sm">อัปโหลดไฟล์ JSON ที่สำรองไว้เพื่อกู้คืนประวัติการใช้งานทั้งหมด</p>
+                    <div class="file-import-wrapper">
+                      <input type="file" id="import-db-input" accept=".json" style="display:none;">
+                      <button class="btn btn-secondary btn-icon-label" id="btn-trigger-import">
+                        <i data-lucide="upload-cloud"></i> เลือกไฟล์ข้อมูลนำเข้า
+                      </button>
+                      <span id="import-file-name" class="text-muted text-sm">ไม่ได้เลือกไฟล์</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="danger-zone">
+                  <h3><i data-lucide="alert-triangle"></i> พื้นที่อันตราย (Danger Zone)</h3>
+                  <div class="danger-row">
+                    <div>
+                      <h4>ล้างข้อมูลและคืนค่าโรงงาน</h4>
+                      <p class="text-muted text-sm">ล้างธุรกรรมปัจจุบันทั้งหมดและโหลดเฉพาะยอดสะสมตั้งต้นเดือน พ.ค. 2569 ใหม่</p>
+                    </div>
+                    <button class="btn btn-danger btn-icon-label" id="btn-reset-db">
+                      <i data-lucide="rotate-ccw"></i> รีเซ็ตฐานข้อมูล พ.ค. 2569
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h2><i data-lucide="info"></i> กฎการตรวจสอบ (Audit Rules)</h2>
+              </div>
+              <div class="panel-body text-flow">
+                <h3>ตรรกะระบบคุมโปรโมชั่นของแถม</h3>
+                <ul>
+                  <li><strong>นำเข้าประวัติยอดขายเดือน พ.ค. 2569:</strong> วิเคราะห์จับคู่สินค้ากับราคา Pricelist อัตโนมัติ บิลใดขายเต็มราคาโดยไม่หักลด Trade จะแปลงค่าเป็นงบโปรโมชั่นสะสมตามกฎ (PCO = 3%, MCO = 1.5%, บวกเพิ่ม 1% สำหรับลูกค้าเงินสดเครดิต 1 วัน)</li>
+                  <li><strong>สิทธิ์ผู้ใช้:</strong> แบ่งสิทธิ์ DSR ให้เห็นเฉพาะฟอร์มสะสมยอด เคลมของแถม และช่องส่งของพร้อมแนบรูปถ่าย ส่วน Admin สามารถอนุมัติบิลและนำเข้า/ส่งออกข้อมูลได้</li>
+                  <li><strong>บีบอัดภาพถ่าย (Image Compression):</strong> ภาพหลักฐานบิลจัดซื้อและภาพถ่ายส่งของจะถูกย่อขนาดในเบราว์เซอร์อัตโนมัติ ช่วยรักษาความเร็วและขนาดของไฟล์ระบบให้เสถียรในระยะยาว</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- DETAILS MODAL (LEDGER - WIDESCREEN STATEMENT) -->
+  <div class="modal-overlay" id="ledger-modal">
+    <div class="modal-content large widescreen">
+      <button class="btn-close-modal" id="btn-close-ledger">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <div class="customer-info-header flex-between">
+          <div>
+            <span class="tag-province" id="modal-cust-province">จังหวัด</span>
+            <h2 id="modal-cust-name" style="font-size: 24px; margin-top: 6px;">ชื่อร้านค้า</h2>
+            <p id="modal-cust-address" class="text-muted" style="margin-top: 4px; font-size:13px;">ที่อยู่</p>
+          </div>
+          <div class="dsr-assigned-card-header">
+            <span class="lbl">พนักงาน DSR ที่ดูแล:</span>
+            <div class="dsr-val" id="modal-cust-dsr" style="font-weight: 700; color: var(--castrol-green); font-size: 15px; margin-top: 4px;">สมชาย ใจดี</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ledger-modal-body">
+        <!-- Left Sidebar: Totals Summary -->
+        <div class="ledger-summary-widescreen">
+          <div class="ledger-metric-box earn">
+            <span class="lbl">งบสะสมรวม (Earned)</span>
+            <div class="val" id="modal-stat-accumulated">0.00 ฿</div>
+          </div>
+          <div class="ledger-metric-box claim">
+            <span class="lbl">ใช้เบิกของแถม (Claimed)</span>
+            <div class="val text-success" id="modal-stat-claimed">0.00 ฿</div>
+          </div>
+          <div class="ledger-metric-box pending">
+            <span class="lbl">รอตรวจบิล (Pending)</span>
+            <div class="val text-warning" id="modal-stat-pending">0.00 ฿</div>
+          </div>
+          <div class="ledger-metric-box remaining highlighted">
+            <span class="lbl">คงเหลือเบิกได้จริง (Remaining)</span>
+            <div class="val text-info" id="modal-stat-available">0.00 ฿</div>
+          </div>
+        </div>
+
+        <!-- Right Content: Detailed Tables (Statement) -->
+        <div class="ledger-history-widescreen">
+          <h3 class="statement-title"><i data-lucide="list"></i> ประวัติความเคลื่อนไหวบัญชีสะสมและของแถม (Account Statement)</h3>
+          <div class="table-container ledger-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">วันที่</th>
+                  <th>รายการเคลื่อนไหวบัญชี</th>
+                  <th style="text-align: center; width: 100px;">จำนวน (ลัง)</th>
+                  <th style="text-align: right; width: 130px;">บวกยอดสะสม (Earn)</th>
+                  <th style="text-align: right; width: 130px;">หักเคลมของแถม (Claim)</th>
+                  <th style="text-align: center; width: 160px;">สถานะภาพถ่ายบิล & ส่งของ</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-history-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD DELIVERY PHOTO MODAL -->
+  <div class="modal-overlay" id="delivery-upload-modal">
+    <div class="modal-content">
+      <button class="btn-close-modal" id="btn-close-delivery-modal">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <h2>บันทึกการส่งมอบของแถมให้ลูกค้า</h2>
+        <p class="text-muted text-sm mt-1" id="delivery-modal-subtitle">แนบหลักฐานภาพถ่ายคู่กับลูกค้า/หน้าร้าน</p>
+      </div>
+      <form id="delivery-upload-form">
+        <input type="hidden" id="delivery-txn-id">
+        <div class="form-group">
+          <label>ถ่ายภาพ/แนบรูปถ่ายการส่งมอบ <span class="required">*</span></label>
+          <div class="upload-zone" id="delivery-drop-zone">
+            <input type="file" id="delivery-photo-input" accept="image/*" style="display:none;" required>
+            <div class="upload-inner" id="delivery-upload-prompt">
+              <i data-lucide="camera" class="upload-icon"></i>
+              <p class="upload-main">คลิกเพื่อ <span>ถ่ายภาพจากมือถือ</span> หรือเลือกไฟล์รูปภาพ</p>
+              <p class="upload-sub">ย่อขนาดภาพอัตโนมัติเพื่อเซฟพื้นที่ระบบ</p>
+            </div>
+            <div class="upload-preview" id="delivery-preview-container" style="display:none;">
+              <img id="delivery-preview-img" src="" alt="Delivery Photo Preview">
+              <button type="button" class="btn-remove-image" id="btn-remove-delivery-photo">
+                <i data-lucide="x"></i> ลบรูป
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-delivery">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary btn-icon-label">
+            <i data-lucide="check"></i> ยืนยันส่งมอบของแถมสำเร็จ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD CUSTOMER MODAL -->
+  <div class="modal-overlay" id="add-customer-modal">
+    <div class="modal-content">
+      <button class="btn-close-modal" id="btn-close-add-customer">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <h2>เพิ่มร้านค้าใหม่ในเครือข่าย</h2>
+      </div>
+      <form id="add-customer-form">
+        <div class="form-group">
+          <label for="new-cust-name">ชื่อร้านค้า / ห้างหุ้นส่วนจำกัด <span class="required">*</span></label>
+          <input type="text" id="new-cust-name" placeholder="ระบุชื่อเต็ม เช่น ร้านสุพรรณยานยนต์" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="new-cust-province">จังหวัดในความดูแล <span class="required">*</span></label>
+            <select id="new-cust-province" required>
+              <option value="">-- เลือกจังหวัด --</option>
+              <option value="สุพรรณบุรี">สุพรรณบุรี</option>
+              <option value="สิงห์บุรี">สิงห์บุรี</option>
+              <option value="อ่างทอง">อ่างทอง</option>
+              <option value="อุทัยธานี">อุทัยธานี</option>
+              <option value="ชัยนาท">ชัยนาท</option>
+              <option value="นครสวรรค์">นครสวรรค์</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="new-cust-dsr">DSR ผู้รับผิดชอบเขต <span class="required">*</span></label>
+            <select id="new-cust-dsr" required>
+              <option value="">-- เลือก DSR --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-cust-address">ที่อยู่โดยละเอียด</label>
+          <textarea id="new-cust-address" rows="2" placeholder="ระบุที่อยู่ของร้านค้าสาขาหลัก..."></textarea>
+        </div>
+
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-customer">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกเพิ่มร้านค้า</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- REJECT REASON MODAL -->
+  <div class="modal-overlay" id="reject-modal">
+    <div class="modal-content">
+      <button class="btn-close-modal" id="btn-close-reject">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <h2>ปฏิเสธคำขอเบิก / แนบหลักฐานไม่ถูกต้อง</h2>
+      </div>
+      <form id="reject-form">
+        <input type="hidden" id="reject-txn-id">
+        <div class="form-group">
+          <label for="reject-reason-input">ระบุเหตุผลในการปฏิเสธคำขอ <span class="required">*</span></label>
+          <textarea id="reject-reason-input" rows="3" placeholder="ระบุเหตุผล เช่น บิลรูปภาพไม่ชัดเจน, ยอดในบิลไม่ตรงกับที่กรอก, สินค้าของแถมไม่ตรงตามเงื่อนไข..." required></textarea>
+        </div>
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-reject">ยกเลิก</button>
+          <button type="submit" class="btn btn-danger">ยืนยันปฏิเสธคำขอเบิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EARN BUDGET MODAL -->
+  <div class="modal-overlay" id="earn-modal">
+    <div class="modal-content">
+      <button class="btn-close-modal" id="btn-close-earn-modal">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <h2><i data-lucide="plus-circle" style="color:var(--castrol-green); vertical-align:middle; margin-right:6px;"></i> สะสมงบประมาณใหม่</h2>
+        <p class="text-muted text-sm mt-1">บันทึกยอดขาย Castrol เพื่อสะสมเป็นงบโปรโมชั่นสำหรับร้านค้า</p>
+      </div>
+      <form id="earn-modal-form">
+        <input type="hidden" id="earn-modal-cust-id">
+        <input type="hidden" id="earn-modal-dsr-id">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>ร้านค้าที่สั่งซื้อ</label>
+            <div id="earn-modal-cust-name" class="static-form-val font-semibold">ชื่อร้านค้า</div>
+          </div>
+          <div class="form-group">
+            <label>ผู้ดูแล (DSR)</label>
+            <div id="earn-modal-dsr-name" class="static-form-val text-muted">ชื่อ DSR</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="earn-modal-date">วันที่สั่งซื้อ / บันทึก <span class="required">*</span></label>
+            <input type="date" id="earn-modal-date" required>
+          </div>
+          <div class="form-group">
+            <label for="earn-modal-qty">จำนวน (ลัง) <span class="required">*</span></label>
+            <input type="number" min="1" step="1" id="earn-modal-qty" value="1" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="earn-modal-amount">ยอดซื้อสุทธิ (บาท) <span class="required">*</span></label>
+            <div class="input-with-symbol">
+              <input type="number" min="0" step="1" id="earn-modal-amount" placeholder="เช่น 10000" required>
+              <span class="symbol">฿</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>คำนวณงบโปรโมชั่นสะสมที่จะได้รับ</label>
+            <div class="calculated-value text-success font-bold" id="earn-modal-calculated-val" style="font-size: 20px; line-height: 40px;">0 ฿</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>สัดส่วนโปรโมชั่น (Promotion Rate) <span class="required">*</span></label>
+          <div class="rate-selector-group flex-wrap">
+            <button type="button" class="btn-rate active" data-rate="3" data-segment="PCO">3% (PCO รถยนต์)</button>
+            <button type="button" class="btn-rate" data-rate="1.5" data-segment="MCO">1.5% (MCO มอเตอร์ไซค์)</button>
+            <button type="button" class="btn-rate" data-rate="4" data-segment="PCO">4% (PCO + 1%)</button>
+            <button type="button" class="btn-rate" data-rate="2.5" data-segment="MCO">2.5% (MCO + 1%)</button>
+            <div class="custom-rate-input">
+              <input type="number" min="0" max="100" step="0.1" id="earn-modal-custom-rate" placeholder="ระบุเอง">
+              <span class="percent-label">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="earn-modal-desc">รายละเอียดสั่งซื้อ / หมายเหตุเพิ่มเติม</label>
+          <textarea id="earn-modal-desc" rows="2" placeholder="เช่น สั่งซื้อ Castrol Activ 4T หรือ GTX..."></textarea>
+        </div>
+
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-earn-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary btn-icon-label">
+            <i data-lucide="check-circle-2"></i> บันทึกสะสมงบสำเร็จ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CLAIM BUDGET MODAL -->
+  <div class="modal-overlay" id="claim-modal">
+    <div class="modal-content">
+      <button class="btn-close-modal" id="btn-close-claim-modal">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-header">
+        <h2><i data-lucide="gift" style="color:var(--color-success); vertical-align:middle; margin-right:6px;"></i> แปลงงบประมาณเป็นของแถม</h2>
+        <p class="text-muted text-sm mt-1">ยื่นคำขอเบิกของแถมสำหรับร้านค้า (สามารถเบิกเกินเพื่อติดลบได้)</p>
+      </div>
+
+      <div class="alert-info-box" id="claim-modal-budget-info" style="margin-bottom: 16px; padding: 10px;">
+        <div class="info-metric-container" style="grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <div class="info-metric">
+            <span class="label">งบสะสมรวม:</span>
+            <span class="val text-primary" id="claim-modal-info-accumulated" style="font-size: 14px;">0 ฿</span>
+          </div>
+          <div class="info-metric">
+            <span class="label">แปลงของแถมแล้ว:</span>
+            <span class="val text-success" id="claim-modal-info-claimed" style="font-size: 14px;">0 ฿</span>
+          </div>
+          <div class="info-metric">
+            <span class="label">งบรออนุมัติอยู่:</span>
+            <span class="val text-warning" id="claim-modal-info-pending" style="font-size: 14px;">0 ฿</span>
+          </div>
+          <div class="info-metric highlight">
+            <span class="label">คงเหลือเคลมได้จริง:</span>
+            <span class="val text-info" id="claim-modal-info-available" style="font-size: 15px; font-weight:700;">0 ฿</span>
+          </div>
+        </div>
+      </div>
+
+      <form id="claim-modal-form">
+        <input type="hidden" id="claim-modal-cust-id">
+        <input type="hidden" id="claim-modal-dsr-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>ร้านค้า</label>
+            <div id="claim-modal-cust-name" class="static-form-val font-semibold">ชื่อร้านค้า</div>
+          </div>
+          <div class="form-group">
+            <label>ผู้ดำเนินการ (DSR)</label>
+            <div id="claim-modal-dsr-name" class="static-form-val text-muted">ชื่อ DSR</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="claim-modal-date">วันที่แลกของแถม / ซื้อของ <span class="required">*</span></label>
+            <input type="date" id="claim-modal-date" required>
+          </div>
+          <div class="form-group">
+            <label for="claim-modal-amount">มูลค่าของแถม (บาท) <span class="required">*</span></label>
+            <div class="input-with-symbol">
+              <input type="number" min="1" step="1" id="claim-modal-amount" placeholder="เช่น 1500" required>
+              <span class="symbol">฿</span>
+            </div>
+            <span class="input-hint text-warning" id="claim-modal-amount-warning" style="display:none; font-size:11px; margin-top:4px;">
+              ⚠️ ยอดเบิกเกินงบคงเหลือที่มี!
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="claim-modal-desc">รายละเอียดสิ่งของที่แลก/นำมาแจก <span class="required">*</span></label>
+          <input type="text" id="claim-modal-desc" placeholder="เช่น พัดลม Hatari 16 นิ้ว หรือ ทองคำ 1 สลึง" required>
+        </div>
+
+        <div class="form-group">
+          <label>แนบหลักฐานบิล/ใบเสร็จรับเงินจาก DSR <span class="required">*</span></label>
+          <div class="upload-zone" id="receipt-modal-drop-zone">
+            <input type="file" id="claim-modal-receipt-input" accept="image/*" style="display:none;" required>
+            <div class="upload-inner" id="receipt-modal-upload-prompt">
+              <i data-lucide="cloud-upload" class="upload-icon"></i>
+              <p class="upload-main">ลากไฟล์รูปภาพบิลมาวาง หรือ <span>คลิกเลือกไฟล์</span></p>
+              <p class="upload-sub">ย่อขนาดภาพอัตโนมัติไม่เกิน 80KB</p>
+            </div>
+            <div class="upload-preview" id="receipt-modal-preview-container" style="display:none;">
+              <img id="receipt-modal-preview-img" src="" alt="Receipt Preview">
+              <button type="button" class="btn-remove-image" id="btn-remove-modal-receipt">
+                <i data-lucide="x"></i> ลบรูป
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-claim-modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-success btn-icon-label" id="claim-modal-submit-btn">
+            <i data-lucide="send"></i> ส่งคำขอเบิกเพื่อรออนุมัติบิล
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- RECEIPT LIGHTBOX MODAL -->
+  <div class="modal-overlay" id="receipt-lightbox">
+    <div class="modal-content lightbox">
+      <button class="btn-close-modal" id="btn-close-lightbox">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="lightbox-img-container">
+        <img id="lightbox-img" src="" alt="Enlarged Receipt">
+      </div>
+      <div class="lightbox-footer">
+        <p id="lightbox-title" class="font-semibold text-center"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Javascript entry point -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
